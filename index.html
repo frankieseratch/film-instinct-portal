@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1280, initial-scale=1" />
+<title>Film Instinct · A World of Sales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+
+<style>
+:root {
+  --ink-0: #0a0e14;
+  --ink-1: #10161f;
+  --ink-2: #141c27;
+  --text-0: #f1ece0;
+  --text-1: #cdd3dc;
+  --text-2: #8692a3;
+  --text-3: #566374;
+  --teal: #5ec5c5;
+  --teal-2: #7dd3d3;
+  --gold: #c9a84c;
+  --gold-2: #f0cf6d;
+  --amber: #d97706;
+  --sans: 'Inter', system-ui, sans-serif;
+  --serif: 'Playfair Display', Georgia, serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: #060910; color: var(--text-0); font-family: var(--sans); }
+.serif { font-family: var(--serif); letter-spacing: -0.01em; }
+
+/* Stage */
+.stage {
+  position: relative; width: 100vw; height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(94,197,197,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 20% 100%, rgba(201,168,76,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 50% at 80% 0%, rgba(94,197,197,0.04) 0%, transparent 70%),
+    #060910;
+  overflow: hidden;
+}
+
+/* Film grain */
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 10;
+  opacity: 0.05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* Starfield (background stars + subtle parallax) */
+.stars {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+}
+.stars canvas { width: 100%; height: 100%; display: block; }
+
+/* Globe + overlays */
+.globe-wrap {
+  position: absolute; inset: 0; z-index: 2;
+  display: grid; place-items: center;
+}
+#globe { width: 100%; height: 100%; }
+
+/* ========== Top bar ========== */
+.top-bar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 6;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 28px 40px;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-mark {
+  width: 40px; height: 40px;
+  border: 1px solid rgba(94,197,197,0.4); border-radius: 50%;
+  display: grid; place-items: center;
+  position: relative;
+}
+.brand-mark::before {
+  content: ""; position: absolute; inset: 4px;
+  border: 1px solid rgba(201,168,76,0.35); border-radius: 50%;
+}
+.brand-mark svg { position: relative; z-index: 1; }
+.brand-name { font-family: var(--serif); font-size: 18px; letter-spacing: 0.02em; }
+.brand-sub { font-size: 9.5px; letter-spacing: 0.32em; color: var(--text-3); text-transform: uppercase; margin-top: 2px; }
+
+.top-nav { display: flex; gap: 36px; }
+.top-nav a {
+  font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--text-2); text-decoration: none; padding: 4px 0;
+  position: relative; transition: color 0.2s;
+}
+.top-nav a:hover { color: var(--gold); }
+.top-nav a.active { color: var(--text-0); }
+.top-nav a.active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -6px;
+  height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.top-cta {
+  padding: 9px 18px; font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gold); border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 2px; background: rgba(201,168,76,0.04);
+  cursor: pointer; font-family: inherit;
+}
+.top-cta:hover { background: rgba(201,168,76,0.12); border-color: var(--gold); }
+
+/* ========== Hero copy ========== */
+.hero-copy {
+  position: absolute; top: 22%; left: 56px; z-index: 5;
+  max-width: 420px;
+  animation: fadeUp 1.1s ease-out 0.3s both;
+}
+.kicker {
+  font-size: 10px; letter-spacing: 0.38em; text-transform: uppercase;
+  color: var(--gold);
+  display: inline-flex; align-items: center; gap: 12px;
+  margin-bottom: 24px;
+}
+.kicker::before, .kicker::after {
+  content: ""; width: 28px; height: 1px; background: rgba(201,168,76,0.5);
+}
+.hero-copy h1 {
+  font-family: var(--serif); font-size: 64px; line-height: 1.02;
+  margin: 0; font-weight: 500; letter-spacing: -0.02em;
+  color: var(--text-0);
+}
+.hero-copy h1 em {
+  font-style: italic; color: var(--gold);
+  display: block;
+}
+.hero-copy p {
+  margin: 24px 0 0;
+  font-size: 14.5px; line-height: 1.7; color: var(--text-1);
+  max-width: 380px;
+}
+.hero-cta-row {
+  display: flex; gap: 12px; margin-top: 36px; align-items: center;
+}
+.cta-primary {
+  padding: 14px 24px; font-size: 11.5px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-0); background: var(--gold); border: 0;
+  font-weight: 600; font-family: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 12px;
+  transition: all 0.2s;
+}
+.cta-primary:hover { background: var(--gold-2); transform: translateX(2px); }
+.cta-primary svg { transition: transform 0.2s; }
+.cta-primary:hover svg { transform: translateX(3px); }
+.cta-ghost {
+  padding: 14px 20px; font-size: 11.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--text-1); background: none; border: 1px solid rgba(205,211,220,0.2);
+  font-family: inherit; cursor: pointer;
+}
+.cta-ghost:hover { border-color: var(--teal); color: var(--teal); }
+
+/* ========== Right side ledger ========== */
+.ledger {
+  position: absolute; top: 22%; right: 56px; z-index: 5;
+  width: 320px;
+  animation: fadeUp 1.1s ease-out 0.5s both;
+}
+.led-kicker {
+  font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 10px;
+}
+.led-title {
+  font-family: var(--serif); font-size: 22px; color: var(--text-0);
+  margin: 0 0 20px; font-weight: 500;
+}
+.led-list { display: flex; flex-direction: column; gap: 0; }
+.led-item {
+  display: grid; grid-template-columns: 80px 1fr auto;
+  gap: 14px; align-items: center;
+  padding: 10px 0; border-top: 1px solid rgba(126,197,197,0.1);
+  font-size: 12px;
+}
+.led-item:last-child { border-bottom: 1px solid rgba(126,197,197,0.1); }
+.led-time { color: var(--text-3); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; }
+.led-place { color: var(--text-1); display: flex; align-items: center; gap: 8px; }
+.led-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.led-dot.teal { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+.led-dot.amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: pulse 1.8s ease-in-out infinite; }
+.led-amt { color: var(--gold); font-family: var(--mono); font-size: 11.5px; text-align: right; }
+.led-amt.teal { color: var(--teal); }
+.led-amt.muted { color: var(--text-3); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== Bottom metrics ========== */
+.metrics {
+  position: absolute; bottom: 56px; left: 50%; transform: translateX(-50%);
+  z-index: 5;
+  display: flex; gap: 80px; align-items: flex-end;
+  animation: fadeUp 1.1s ease-out 0.7s both;
+}
+.metric { text-align: center; }
+.metric-k { font-size: 9.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+.metric-v { font-family: var(--serif); font-size: 38px; color: var(--text-0); letter-spacing: -0.02em; }
+.metric-v.gold { color: var(--gold); }
+.metric-v.teal { color: var(--teal); }
+.metric-sub { font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; margin-top: 4px; }
+
+/* ========== City labels (SVG overlays) ========== */
+.city-layer {
+  position: absolute; inset: 0; pointer-events: none; z-index: 4;
+}
+.city-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text-1);
+  pointer-events: none;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+.city-label .cl-tick {
+  width: 34px; height: 1px; background: linear-gradient(90deg, rgba(201,168,76,0.7), transparent);
+  margin-bottom: 4px;
+}
+.city-label.right .cl-tick { background: linear-gradient(270deg, rgba(201,168,76,0.7), transparent); margin-left: auto; }
+.city-label.right { text-align: right; }
+.city-label .cl-name { color: var(--gold); font-weight: 500; }
+.city-label .cl-sub { color: var(--text-3); font-size: 9px; letter-spacing: 0.14em; margin-top: 2px; }
+
+/* corner frame */
+.corner {
+  position: absolute; width: 32px; height: 32px;
+  border: 1px solid rgba(201,168,76,0.3);
+  pointer-events: none; z-index: 3;
+}
+.corner.tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
+.corner.tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
+.corner.bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
+.corner.br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
+
+/* Shooting star CSS layer (thin diagonal streaks over starfield) */
+.streaks { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.streak {
+  position: absolute; width: 140px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(240,207,109,0.9), rgba(240,207,109,0.3), transparent);
+  opacity: 0; transform-origin: left center;
+  filter: drop-shadow(0 0 4px rgba(240,207,109,0.7));
+}
+.streak::before {
+  content: ""; position: absolute; right: 0; top: -1px; width: 3px; height: 3px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 6px #f0cf6d, 0 0 12px rgba(240,207,109,0.8);
+}
+@keyframes shoot {
+  0% { opacity: 0; transform: translate(-40px, 40px) rotate(var(--angle, 18deg)); }
+  10% { opacity: 1; }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx, 420px), var(--dy, -420px)) rotate(var(--angle, 18deg)); }
+}
+.streak.s1 { top: 18%; left: 8%; --angle: -22deg; --dx: 520px; --dy: -220px; animation: shoot 3.4s ease-out infinite; animation-delay: 0.4s; }
+.streak.s2 { top: 70%; left: 72%; --angle: -32deg; --dx: 420px; --dy: -280px; animation: shoot 4.1s ease-out infinite; animation-delay: 2.1s; }
+.streak.s3 { top: 12%; left: 65%; --angle: -18deg; --dx: 380px; --dy: -150px; animation: shoot 3.6s ease-out infinite; animation-delay: 5.2s; }
+.streak.s4 { top: 50%; left: 6%; --angle: -14deg; --dx: 520px; --dy: -140px; animation: shoot 4.6s ease-out infinite; animation-delay: 7.5s; }
+.streak.s5 { top: 30%; left: 82%; --angle: -40deg; --dx: 300px; --dy: -300px; animation: shoot 3.2s ease-out infinite; animation-delay: 1.1s; }
+
+/* Scroll hint */
+.scroll-hint {
+  position: absolute; bottom: 20px; right: 40px; z-index: 5;
+  font-size: 10px; letter-spacing: 0.3em; color: var(--text-3); text-transform: uppercase;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+}
+
+/* Legend (bottom-left) */
+.legend-box {
+  position: absolute; bottom: 40px; left: 56px; z-index: 5;
+  font-size: 10px; color: var(--text-2); letter-spacing: 0.04em;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.legend-box .lg-row { display: flex; align-items: center; gap: 10px; }
+.lg-swatch { width: 20px; height: 2px; }
+.lg-swatch.gold { background: linear-gradient(90deg, transparent, var(--gold), transparent); box-shadow: 0 0 4px var(--gold); }
+.lg-swatch.teal { background: linear-gradient(90deg, transparent, var(--teal), transparent); box-shadow: 0 0 4px var(--teal); }
+.lg-swatch.amber { background: linear-gradient(90deg, transparent, var(--amber), transparent); box-shadow: 0 0 4px var(--amber); }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .hero-copy { max-width: 340px; top: 18%; left: 40px; }
+  .hero-copy h1 { font-size: 48px; }
+  .ledger { width: 280px; right: 40px; top: 18%; }
+  .metrics { gap: 48px; }
+}
+/* ========== Minimal centered hero ========== */
+.top-bar.minimal { padding: 32px 48px; }
+.hero-center {
+  position: absolute; left: 50%; top: 14%; transform: translateX(-50%);
+  z-index: 5; text-align: center; max-width: 640px;
+  animation: fadeUp 1.2s ease-out 0.3s both;
+}
+.kicker-center {
+  font-size: 10.5px; letter-spacing: 0.44em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 22px;
+  display: inline-flex; align-items: center; gap: 14px;
+}
+.kicker-center::before, .kicker-center::after {
+  content: ""; width: 36px; height: 1px; background: rgba(201,168,76,0.5);
+}
+.hero-h1 {
+  font-family: var(--serif); font-size: 62px; line-height: 1.05;
+  margin: 0; font-weight: 500; letter-spacing: -0.02em; color: var(--text-0);
+}
+.hero-h1 em { font-style: italic; color: var(--gold); }
+.cta-center { margin-top: 34px; }
+
+/* ========== Bottom sign-in hint ========== */
+.signin-hint {
+  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+  z-index: 5; font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--text-3); animation: fadeUp 1.2s ease-out 1s both;
+}
+
+@media (max-width: 900px) {
+  .hero-h1 { font-size: 40px; }
+  .top-bar.minimal { padding: 20px 24px; }
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stars"><canvas id="star-canvas"></canvas></div>
+
+  <div class="globe-wrap">
+    <canvas id="globe"></canvas>
+  </div>
+
+  <div class="city-layer" id="city-layer" style="display:none"></div>
+
+  <!-- MINIMAL TOP BAR -->
+  <header class="top-bar minimal">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#c9a84c" stroke-width="1.3">
+          <circle cx="12" cy="12" r="7"/>
+          <path d="M5 12h14M12 5a12 12 0 010 14M12 5a12 12 0 000 14"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Film Instinct</div>
+        <div class="brand-sub">Territorial Intelligence</div>
+      </div>
+    </div>
+    <button class="top-cta" onclick="window.location.href='landing.html'">Sign In</button>
+  </header>
+
+  <!-- CENTERED HERO -->
+  <section class="hero-center">
+    <div class="kicker-center">A World of Sales</div>
+    <h1 class="hero-h1">Where films become <em>capital.</em></h1>
+    <button class="cta-primary cta-center" onclick="window.location.href='landing.html'">
+      Enter the Portal
+      <svg width="16" height="10" viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M1 5h13M10 1l4 4-4 4"/>
+      </svg>
+    </button>
+  </section>
+</div>
+
+<script>
+/* =========================================================
+   CITIES — film-finance capitals. Flows are distributor → producer,
+   or producer → distributor acquisition. Capital follows the arc.
+   ========================================================= */
+const CITIES = {
+  LA:        { name: "Los Angeles",  sub: "Studio HQ",     lat: 34.05,  lon: -118.24, role: "hub"  },
+  NY:        { name: "New York",     sub: "Equity · Banks",lat: 40.71,  lon:  -74.00, role: "hub"  },
+  TORONTO:   { name: "Toronto",      sub: "Tax Credits",   lat: 43.65,  lon:  -79.38, role: "city" },
+  MEXICO:    { name: "Mexico City",  sub: "LatAm Gateway", lat: 19.43,  lon:  -99.13, role: "city" },
+  SAOPAULO:  { name: "São Paulo",    sub: "Brazil",        lat: -23.55, lon:  -46.63, role: "city" },
+  BUENOS:    { name: "Buenos Aires", sub: "Southern Cone", lat: -34.60, lon:  -58.38, role: "city" },
+  LONDON:    { name: "London",       sub: "UK · Ireland",  lat: 51.50,  lon:   -0.12, role: "hub"  },
+  PARIS:     { name: "Paris",        sub: "France",        lat: 48.85,  lon:    2.35, role: "city" },
+  BERLIN:    { name: "Berlin",       sub: "DACH",          lat: 52.52,  lon:   13.40, role: "city" },
+  AMSTERDAM: { name: "Amsterdam",    sub: "Benelux",       lat: 52.37,  lon:    4.89, role: "city" },
+  ROME:      { name: "Rome",         sub: "Italy",         lat: 41.90,  lon:   12.50, role: "city" },
+  MADRID:    { name: "Madrid",       sub: "Spain",         lat: 40.42,  lon:   -3.70, role: "city" },
+  STOCKHOLM: { name: "Stockholm",    sub: "Scandinavia",   lat: 59.33,  lon:   18.07, role: "city" },
+  ISTANBUL:  { name: "Istanbul",     sub: "Turkey · ME",   lat: 41.01,  lon:   28.98, role: "city" },
+  DUBAI:     { name: "Dubai",        sub: "Gulf · Levant", lat: 25.20,  lon:   55.27, role: "city" },
+  MUMBAI:    { name: "Mumbai",       sub: "Subcontinent",  lat: 19.08,  lon:   72.88, role: "city" },
+  SEOUL:     { name: "Seoul",        sub: "Korea",         lat: 37.57,  lon:  126.98, role: "city" },
+  TOKYO:     { name: "Tokyo",        sub: "Japan",         lat: 35.68,  lon:  139.69, role: "hub"  },
+  HK:        { name: "Hong Kong",    sub: "Greater China", lat: 22.32,  lon:  114.17, role: "city" },
+  SINGAPORE: { name: "Singapore",    sub: "SE Asia",       lat: 1.35,   lon:  103.82, role: "city" },
+  SYDNEY:    { name: "Sydney",       sub: "ANZ",           lat: -33.87, lon:  151.21, role: "city" },
+  LAGOS:     { name: "Lagos",        sub: "W. Africa",     lat: 6.52,   lon:    3.38, role: "city" },
+  JOHAN:     { name: "Johannesburg", sub: "S. Africa",     lat: -26.20, lon:   28.04, role: "city" },
+};
+
+// FLOWS: money movement. value in millions. type: closed | pending | domestic
+const FLOWS = [
+  // Outbound acquisitions into LA (producer receives MG)
+  { from: "TOKYO",     to: "LA",    value: 1.58, type: "closed" },
+  { from: "LONDON",    to: "LA",    value: 0.84, type: "closed" },
+  { from: "PARIS",     to: "LA",    value: 0.70, type: "closed" },
+  { from: "BERLIN",    to: "LA",    value: 0.44, type: "pending" },
+  { from: "SEOUL",     to: "LA",    value: 0.51, type: "closed" },
+  { from: "SYDNEY",    to: "LA",    value: 0.37, type: "closed" },
+  { from: "MEXICO",    to: "LA",    value: 0.31, type: "closed" },
+  { from: "SAOPAULO",  to: "LA",    value: 0.20, type: "pending" },
+  { from: "AMSTERDAM", to: "LA",    value: 0.27, type: "closed" },
+  { from: "STOCKHOLM", to: "LA",    value: 0.30, type: "closed" },
+  { from: "ROME",      to: "LA",    value: 0.23, type: "closed" },
+  { from: "ISTANBUL",  to: "LA",    value: 0.09, type: "closed" },
+  { from: "DUBAI",     to: "LA",    value: 0.14, type: "closed" },
+  { from: "HK",        to: "LA",    value: 0.07, type: "pending" },
+  { from: "SINGAPORE", to: "LA",    value: 0.05, type: "closed" },
+  { from: "MADRID",    to: "LA",    value: 0.22, type: "pending" },
+  { from: "MUMBAI",    to: "LA",    value: 0.20, type: "pending" },
+  // NY equity flows
+  { from: "NY",        to: "LA",         value: 6.2, type: "domestic" },
+  { from: "NY",        to: "TORONTO",    value: 1.4, type: "domestic" },
+  { from: "NY",        to: "LONDON",     value: 0.8, type: "domestic" },
+  // secondary hubs
+  { from: "LONDON",    to: "PARIS",      value: 0.18, type: "closed" },
+  { from: "TOKYO",     to: "SEOUL",      value: 0.24, type: "closed" },
+  { from: "DUBAI",     to: "MUMBAI",     value: 0.11, type: "pending" },
+  { from: "JOHAN",     to: "LONDON",     value: 0.08, type: "closed" },
+  { from: "LAGOS",     to: "LONDON",     value: 0.06, type: "pending" },
+];
+
+/* ===================== STARFIELD ===================== */
+(function starfield(){
+  const c = document.getElementById('star-canvas');
+  const ctx = c.getContext('2d');
+  let W=0, H=0, stars=[];
+  function resize(){
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = c.width = innerWidth * dpr; H = c.height = innerHeight * dpr;
+    c.style.width = innerWidth + 'px'; c.style.height = innerHeight + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    stars = [];
+    const N = Math.floor((innerWidth * innerHeight) / 4200);
+    for (let i=0;i<N;i++){
+      stars.push({
+        x: Math.random()*innerWidth,
+        y: Math.random()*innerHeight,
+        r: Math.random()*1.2 + 0.3,
+        a: Math.random()*0.7 + 0.2,
+        tw: Math.random()*0.02 + 0.005,
+        tz: Math.random() * Math.PI * 2,
+        gold: Math.random() < 0.12,
+      });
+    }
+  }
+  resize();
+  addEventListener('resize', resize);
+  function tick(t){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    for (const s of stars){
+      s.tz += s.tw;
+      const a = s.a * (0.6 + 0.4 * Math.sin(s.tz));
+      ctx.beginPath();
+      ctx.fillStyle = s.gold
+        ? `rgba(240,207,109,${a})`
+        : `rgba(220,230,240,${a})`;
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* ===================== GLOBE ===================== */
+(function globe(){
+  const canvas = document.getElementById('globe');
+  const ctx = canvas.getContext('2d');
+  const layer = document.getElementById('city-layer');
+
+  let W=0, H=0, cx=0, cy=0, R=0, dpr=1;
+  let rot = 0; // longitudinal rotation
+  let tiltDeg = 22; // axial tilt for cinematic angle
+  let dragging=false, dragStartX=0, dragStartY=0, rotStart=0, tiltStart=0;
+  let autoRotSpeed = 0.00018; // radians per ms (slow, cinematic)
+  let lastT = performance.now();
+  let userHeld = 0;
+
+  // Particles (money packets) along arcs
+  const particles = []; // { flowIdx, t, speed }
+
+  function resize(){
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = canvas.width = innerWidth * dpr;
+    H = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    cx = innerWidth/2; cy = innerHeight/2;
+    R = Math.min(innerWidth, innerHeight) * 0.32;
+  }
+  resize();
+  addEventListener('resize', () => { resize(); positionLabels(); });
+
+  function latLonToVec3(lat, lon){
+    const phi = (90 - lat) * Math.PI/180;
+    const theta = (lon + 180) * Math.PI/180;
+    const x = -Math.sin(phi) * Math.cos(theta);
+    const z =  Math.sin(phi) * Math.sin(theta);
+    const y =  Math.cos(phi);
+    return [x, y, z];
+  }
+  function rotY(v, a){
+    const [x,y,z] = v, c=Math.cos(a), s=Math.sin(a);
+    return [c*x + s*z, y, -s*x + c*z];
+  }
+  function rotX(v, a){
+    const [x,y,z] = v, c=Math.cos(a), s=Math.sin(a);
+    return [x, c*y - s*z, s*y + c*z];
+  }
+  function project(v){
+    // v = unit vector after rotation; project orthographically
+    return { x: cx + v[0]*R, y: cy - v[1]*R, z: v[2] };
+  }
+
+  // World coastline data (loaded async; drawn once available)
+  let worldArcs = null; // array of arrays of [lon, lat] per continuous line
+  (async () => {
+    try {
+      const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+      const topo = await res.json();
+      // Extract country feature collection -> each feature's polygon rings as lon/lat lines
+      const fc = topojson.feature(topo, topo.objects.countries);
+      const arcs = [];
+      for (const feat of fc.features){
+        const geom = feat.geometry;
+        if (!geom) continue;
+        const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+        for (const poly of polys){
+          for (const ring of poly){
+            // ring is array of [lon,lat]
+            arcs.push(ring);
+          }
+        }
+      }
+      worldArcs = arcs;
+    } catch (e) { console.warn('world atlas load failed', e); }
+  })();
+
+  // Precompute city vectors (base)
+  const cityKeys = Object.keys(CITIES);
+  const cityBase = {};
+  for (const k of cityKeys){
+    cityBase[k] = latLonToVec3(CITIES[k].lat, CITIES[k].lon);
+  }
+
+  function transformCity(k){
+    let v = cityBase[k];
+    v = rotY(v, rot);
+    v = rotX(v, -tiltDeg * Math.PI/180);
+    return project(v);
+  }
+
+  // --- Label DOM elements ---
+  const labelEls = {};
+  for (const k of cityKeys){
+    const el = document.createElement('div');
+    el.className = 'city-label';
+    el.innerHTML = `
+      <div class="cl-tick"></div>
+      <div class="cl-name">${CITIES[k].name}</div>
+      <div class="cl-sub">${CITIES[k].sub}</div>
+    `;
+    layer.appendChild(el);
+    labelEls[k] = el;
+  }
+  function positionLabels(){
+    for (const k of cityKeys){
+      const p = transformCity(k);
+      const el = labelEls[k];
+      if (p.z < -0.2){ el.style.opacity = 0; continue; }
+      const frontness = Math.max(0, Math.min(1, (p.z + 0.2) / 1.2));
+      el.style.opacity = frontness * (CITIES[k].role === "hub" ? 1 : 0.75);
+      // offset so label sits beside the dot
+      const offset = CITIES[k].role === "hub" ? 22 : 16;
+      // decide left/right based on city x vs center
+      const rightSide = p.x > cx;
+      el.classList.toggle('right', rightSide);
+      const dx = rightSide ? offset : -offset;
+      el.style.left = (p.x + dx) + 'px';
+      el.style.top = (p.y - 4) + 'px';
+      el.style.textAlign = rightSide ? 'left' : 'right';
+    }
+  }
+
+  // --- Drag interaction ---
+  canvas.addEventListener('pointerdown', (e) => {
+    dragging = true; dragStartX = e.clientX; dragStartY = e.clientY;
+    rotStart = rot; tiltStart = tiltDeg;
+    userHeld = performance.now();
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = 'grabbing';
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    rot = rotStart + dx * 0.006;
+    tiltDeg = Math.max(-60, Math.min(60, tiltStart - dy * 0.25));
+  });
+  canvas.addEventListener('pointerup', () => { dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('pointerleave', () => { dragging = false; });
+  canvas.style.cursor = 'grab';
+
+  // --- Drawing helpers ---
+  function drawCoastlines(){
+    if (!worldArcs) return;
+    ctx.save();
+    ctx.lineWidth = 0.8;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    const tiltR = -tiltDeg * Math.PI/180;
+    for (const ring of worldArcs){
+      ctx.beginPath();
+      let started = false;
+      for (let i=0; i<ring.length; i++){
+        const [lon, lat] = ring[i];
+        let v = latLonToVec3(lat, lon);
+        v = rotY(v, rot);
+        v = rotX(v, tiltR);
+        if (v[2] < -0.02){ started = false; continue; }
+        const p = project(v);
+        const frontness = Math.max(0, Math.min(1, (v[2] + 0.02) / 1.02));
+        // Draw in segments so we can vary alpha along the limb
+        if (!started){
+          ctx.moveTo(p.x, p.y);
+          started = true;
+        } else {
+          ctx.lineTo(p.x, p.y);
+        }
+        p._f = frontness;
+      }
+      ctx.strokeStyle = 'rgba(201,168,76,0.42)';
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGraticule(){
+    ctx.save();
+    ctx.strokeStyle = 'rgba(94,197,197,0.08)';
+    ctx.lineWidth = 1;
+    // parallels (lats)
+    for (let lat=-60; lat<=60; lat+=15){
+      ctx.beginPath();
+      let started=false;
+      for (let lon=-180; lon<=180; lon+=3){
+        let v = latLonToVec3(lat, lon);
+        v = rotY(v, rot); v = rotX(v, -tiltDeg*Math.PI/180);
+        if (v[2] < -0.02) { started=false; continue; }
+        const p = project(v);
+        if (!started){ ctx.moveTo(p.x, p.y); started=true; }
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+    }
+    // meridians (lons)
+    for (let lon=-180; lon<180; lon+=20){
+      ctx.beginPath();
+      let started=false;
+      for (let lat=-85; lat<=85; lat+=3){
+        let v = latLonToVec3(lat, lon);
+        v = rotY(v, rot); v = rotX(v, -tiltDeg*Math.PI/180);
+        if (v[2] < -0.02) { started=false; continue; }
+        const p = project(v);
+        if (!started){ ctx.moveTo(p.x, p.y); started=true; }
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGlobeBody(){
+    // outer atmospheric glow
+    const grad = ctx.createRadialGradient(cx, cy, R*0.85, cx, cy, R*1.25);
+    grad.addColorStop(0, 'rgba(94,197,197,0.18)');
+    grad.addColorStop(0.6, 'rgba(94,197,197,0.05)');
+    grad.addColorStop(1, 'rgba(94,197,197,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(cx, cy, R*1.25, 0, Math.PI*2); ctx.fill();
+
+    // globe sphere (dark, with radial lighting from upper-left)
+    const sg = ctx.createRadialGradient(cx - R*0.3, cy - R*0.35, R*0.1, cx, cy, R);
+    sg.addColorStop(0, '#16222e');
+    sg.addColorStop(0.55, '#0e1720');
+    sg.addColorStop(1, '#060910');
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.fill();
+
+    // thin rim (terminator)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(201,168,76,0.22)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+
+    // inner subtle gold highlight (ambient)
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    const hg = ctx.createRadialGradient(cx - R*0.4, cy - R*0.5, 0, cx - R*0.4, cy - R*0.5, R*0.8);
+    hg.addColorStop(0, 'rgba(201,168,76,0.10)');
+    hg.addColorStop(1, 'rgba(201,168,76,0)');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function arcPoints(fromKey, toKey, segments=64){
+    const a = cityBase[fromKey], b = cityBase[toKey];
+    // great-circle interpolation (slerp)
+    const dot = Math.max(-1, Math.min(1, a[0]*b[0] + a[1]*b[1] + a[2]*b[2]));
+    const omega = Math.acos(dot);
+    const sinO = Math.sin(omega) || 1;
+    // max lift proportional to distance
+    const lift = 0.18 + 0.35 * (omega / Math.PI);
+    const pts = [];
+    for (let i=0; i<=segments; i++){
+      const t = i/segments;
+      const s1 = Math.sin((1-t)*omega) / sinO;
+      const s2 = Math.sin(t*omega) / sinO;
+      let v = [a[0]*s1 + b[0]*s2, a[1]*s1 + b[1]*s2, a[2]*s1 + b[2]*s2];
+      // lift
+      const h = Math.sin(Math.PI * t) * lift;
+      // normalize then scale
+      const mag = Math.hypot(v[0],v[1],v[2]);
+      v = [v[0]/mag * (1+h), v[1]/mag * (1+h), v[2]/mag * (1+h)];
+      pts.push(v);
+    }
+    return pts;
+  }
+
+  function drawArc(flow, highlight=false){
+    const pts = arcPoints(flow.from, flow.to);
+    const color = flow.type === 'pending'
+      ? '217,119,6' // amber
+      : flow.type === 'domestic'
+        ? '94,197,197' // teal
+        : '240,207,109'; // gold
+    // rotate & project all points
+    const proj = pts.map(v => {
+      let r = rotY(v, rot); r = rotX(r, -tiltDeg*Math.PI/180);
+      return project(r);
+    });
+
+    // Compute front-facing alpha per point (so arcs fade on far side)
+    ctx.save();
+    ctx.lineCap = 'round';
+    const width = 0.7 + Math.min(2.2, Math.sqrt(flow.value) * 1.4) + (highlight ? 0.6 : 0);
+    ctx.lineWidth = width;
+
+    // draw as segments with per-segment alpha based on z
+    for (let i=0; i<proj.length-1; i++){
+      const p1 = proj[i], p2 = proj[i+1];
+      const z = (p1.z + p2.z) / 2;
+      if (z < -0.1) continue;
+      const frontness = Math.max(0, Math.min(1, (z + 0.1) / 1.1));
+      const alpha = (0.25 + 0.55 * frontness) * (flow.type === 'pending' ? 0.95 : 1);
+      ctx.strokeStyle = `rgba(${color},${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+
+    // soft outer glow for gold closed arcs
+    if (flow.type === 'closed'){
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = width * 3;
+      for (let i=0; i<proj.length-1; i++){
+        const p1 = proj[i], p2 = proj[i+1];
+        const z = (p1.z + p2.z) / 2;
+        if (z < 0) continue;
+        const frontness = Math.max(0, Math.min(1, z));
+        ctx.strokeStyle = `rgba(${color},${0.08 * frontness})`;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    ctx.restore();
+    return proj;
+  }
+
+  function drawParticles(now){
+    for (const p of particles){
+      const flow = FLOWS[p.flowIdx];
+      const pts = arcPoints(flow.from, flow.to, 80);
+      const idx = Math.floor(p.t * (pts.length-1));
+      let v = pts[idx];
+      let r = rotY(v, rot); r = rotX(r, -tiltDeg*Math.PI/180);
+      const pr = project(r);
+      if (pr.z < 0) continue;
+      const color = flow.type === 'pending' ? '217,119,6' : flow.type === 'domestic' ? '94,197,197' : '240,207,109';
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      // head
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${color},1)`;
+      ctx.arc(pr.x, pr.y, 2.2, 0, Math.PI*2);
+      ctx.fill();
+      // glow
+      const rg = ctx.createRadialGradient(pr.x, pr.y, 0, pr.x, pr.y, 14);
+      rg.addColorStop(0, `rgba(${color},0.55)`);
+      rg.addColorStop(1, `rgba(${color},0)`);
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(pr.x, pr.y, 14, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawCities(){
+    // dots on sphere
+    for (const k of cityKeys){
+      const p = transformCity(k);
+      if (p.z < -0.05) continue;
+      const isHub = CITIES[k].role === 'hub';
+      const frontness = Math.max(0, Math.min(1, (p.z + 0.05) / 1.05));
+      // outer glow
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const r = isHub ? 10 : 6;
+      const rg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      rg.addColorStop(0, `rgba(240,207,109,${0.55 * frontness})`);
+      rg.addColorStop(1, 'rgba(240,207,109,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // core dot
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(240,207,109,${0.9*frontness + 0.1})`;
+      ctx.arc(p.x, p.y, isHub ? 3 : 1.8, 0, Math.PI*2);
+      ctx.fill();
+
+      // hub ring
+      if (isHub){
+        ctx.save();
+        ctx.strokeStyle = `rgba(240,207,109,${0.45*frontness})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+
+  function spawnParticles(){
+    if (particles.length >= 80) return;
+    const idx = Math.floor(Math.random() * FLOWS.length);
+    particles.push({ flowIdx: idx, t: 0, speed: 0.0008 + Math.random()*0.0009 });
+  }
+
+  function frame(now){
+    const dt = now - lastT; lastT = now;
+    // auto-rotate unless recently held
+    const heldMs = now - userHeld;
+    const factor = heldMs < 1500 ? 0 : Math.min(1, (heldMs - 1500) / 800);
+    if (!dragging) rot += autoRotSpeed * dt * factor;
+
+    // advance particles
+    for (let i=particles.length-1; i>=0; i--){
+      particles[i].t += particles[i].speed * dt;
+      if (particles[i].t >= 1) particles.splice(i,1);
+    }
+    if (Math.random() < 0.45) spawnParticles();
+
+    ctx.clearRect(0,0,innerWidth, innerHeight);
+    drawGlobeBody();
+    drawGraticule();
+    drawCoastlines();
+    // arcs behind cities
+    for (const f of FLOWS) drawArc(f);
+    drawParticles(now);
+    drawCities();
+    positionLabels();
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ===================== LEDGER TICKER ===================== */
+(function ticker(){
+  const list = document.getElementById('led-list');
+  if (!list) return;
+  const seed = [
+    { t: "14:02", place: "Tokyo → Los Angeles",   amt: "$1.58M", status: "gold",  tag: "Kaigetsu Pictures · MG wired" },
+    { t: "13:47", place: "Paris → Los Angeles",   amt: "$0.47M", status: "gold",  tag: "Quai du Nord · closed" },
+    { t: "13:30", place: "Berlin · negotiating",  amt: "$0.44M", status: "amber", tag: "Koenig & Stern · counter out" },
+    { t: "12:51", place: "Seoul → Los Angeles",   amt: "$0.32M", status: "gold",  tag: "Seorim Entertainment" },
+    { t: "12:14", place: "São Paulo · pending",   amt: "$0.20M", status: "amber", tag: "Costa Verde Filmes" },
+    { t: "11:58", place: "Stockholm bundle",      amt: "$0.30M", status: "gold",  tag: "Nordlys · 5-territory" },
+    { t: "11:30", place: "Mumbai · negotiating",  amt: "$0.20M", status: "amber", tag: "Subcontinental Arts" },
+    { t: "10:47", place: "New York · equity draw",amt: "$2.10M", status: "teal",  tag: "Tranche B · wired" },
+  ];
+  for (const r of seed){
+    const row = document.createElement('div');
+    row.className = 'led-item';
+    row.innerHTML = `
+      <div class="led-time">${r.t}</div>
+      <div class="led-place"><span class="led-dot ${r.status}"></span>${r.place}</div>
+      <div class="led-amt ${r.status === 'teal' ? 'teal' : (r.status === 'amber' ? 'muted' : '')}">${r.amt}</div>
+    `;
+    list.appendChild(row);
+  }
+})();
+</script>
+</body>
+</html>
